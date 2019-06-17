@@ -10,6 +10,9 @@ RUN apk upgrade --update \
     && apk add bash tzdata privoxy \
     && ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime \
     && echo ${TZ} > /etc/timezone \
-    && rm -rf /var/cache/apk/*
+    && rm -rf /var/cache/apk/* \
+    && mv /etc/privoxy/config /etc/privoxy/configbak
 
-CMD ["privoxy","--no-daemon","/etc/privoxy/config"]
+ADD entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
