@@ -1,17 +1,17 @@
 FROM openjdk:8-jre-alpine
 
-LABEL maintainer="mritd <mritd1234@gmail.com>"
+LABEL maintainer="mritd <mritd@linux.com>"
 
 ARG TZ="Asia/Shanghai"
 
 ENV TZ ${TZ}
 # https://artifacts.elastic.co/GPG-KEY-elasticsearch
 ENV GPG_KEY 46095ACC8548582C1A2699A9D27D666CD88E42B4
-ENV ELASTICSEARCH_VERSION 6.2.1
+ENV ELASTICSEARCH_VERSION 6.5.2
 ENV ELASTICSEARCH_HOME /usr/local/elasticsearch
 ENV ELASTICSEARCH_TARBALL https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ELASTICSEARCH_VERSION}.tar.gz
 ENV ELASTICSEARCH_TARBALL_ASC https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ELASTICSEARCH_VERSION}.tar.gz.asc
-ENV ELASTICSEARCH_TARBALL_SHA1 8d5c6a95ab7569eee42a8430778111c1944a6f4e
+ENV ELASTICSEARCH_TARBALL_SHA1 66291d316aebf4203a02bc4dbf74360a467ec1a9
 
 # ensure elasticsearch user exists
 RUN set -ex \

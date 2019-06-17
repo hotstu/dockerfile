@@ -1,11 +1,11 @@
-FROM alpine:3.7
+FROM alpine:3.9
 
-LABEL maintainer="mritd <mritd1234@gmail.com>"
+LABEL maintainer="mritd <mritd@linux.com>"
 
 ARG TZ="Asia/Shanghai"
 
 ENV TZ ${TZ}
-ENV CT_VERSION 0.8.24
+ENV CT_VERSION 0.8.25
 ENV CT_DOWNLOAD_URL https://github.com/jpillora/cloud-torrent/releases/download/${CT_VERSION}/cloud-torrent_linux_amd64.gz 
 
 RUN apk upgrade --update \

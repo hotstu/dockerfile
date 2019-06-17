@@ -1,14 +1,16 @@
 ## shadowsocks
 
-[![](https://images.microbadger.com/badges/image/mritd/shadowsocks.svg)](https://microbadger.com/images/mritd/shadowsocks "Get your own image badge on microbadger.com") [![](https://images.microbadger.com/badges/version/mritd/shadowsocks.svg)](https://microbadger.com/images/mritd/shadowsocks "Get your own version badge on microbadger.com")
+![](https://img.shields.io/docker/stars/mritd/shadowsocks.svg) ![](https://img.shields.io/docker/pulls/mritd/shadowsocks.svg) ![](https://img.shields.io/microbadger/image-size/mritd/shadowsocks.svg) ![](https://img.shields.io/microbadger/layers/mritd/shadowsocks.svg)
 
-- **shadowsocks-libev 版本: 3.1.3**
-- **kcptun 版本: 20180316**
+- **shadowsocks-libev 版本: 3.2.5**
+- **kcptun 版本: 20190424**
+
+**注意: 由于 Docker Hub 自动构建功能最近出现的 Bug 比较多，构建队列缓慢；部分镜像(包含本镜像)可能会在采用本地 Build 然后直接 push 到远程仓库的方式构建；如有安全疑虑，可自行实用本 Dockerfile 构建**
 
 ### 打开姿势
 
 ``` sh
-docker run -dt --name ss -p 6443:6443 mritd/shadowsocks -s "-s 0.0.0.0 -p 6443 -m aes-256-cfb -k test123 --fast-open"
+docker run -dt --name ss -p 6443:6443 mritd/shadowsocks -s "-s 0.0.0.0 -p 6443 -m chacha20-ietf-poly1305 -k test123"
 ```
 
 ### 支持选项
@@ -32,26 +34,26 @@ docker run -dt --name ss -p 6443:6443 mritd/shadowsocks -s "-s 0.0.0.0 -p 6443 -
 **Server 端**
 
 ``` sh
-docker run -dt --name ssserver -p 6443:6443 -p 6500:6500/udp mritd/shadowsocks -m "ss-server" -s "-s 0.0.0.0 -p 6443 -m aes-256-cfb -k test123 --fast-open" -x -e "kcpserver" -k "-t 127.0.0.1:6443 -l :6500 -mode fast2"
+docker run -dt --name ssserver -p 6443:6443 -p 6500:6500/udp mritd/shadowsocks -m "ss-server" -s "-s 0.0.0.0 -p 6443 -m chacha20-ietf-poly1305 -k test123" -x -e "kcpserver" -k "-t 127.0.0.1:6443 -l :6500 -mode fast2"
 ```
 
 **以上命令相当于执行了**
 
 ``` sh
-ss-server -s 0.0.0.0 -p 6443 -m aes-256-cfb -k test123 --fast-open
+ss-server -s 0.0.0.0 -p 6443 -m chacha20-ietf-poly1305 -k test123
 kcpserver -t 127.0.0.1:6443 -l :6500 -mode fast2
 ```
 
 **Client 端**
 
 ``` sh
-docker run -dt --name ssclient -p 1080:1080 mritd/shadowsocks -m "ss-local" -s "-s 127.0.0.1 -p 6500 -b 0.0.0.0 -l 1080 -m aes-256-cfb -k test123 --fast-open" -x -e "kcpclient" -k "-r SSSERVER_IP:6500 -l :6500 -mode fast2"
+docker run -dt --name ssclient -p 1080:1080 mritd/shadowsocks -m "ss-local" -s "-s 127.0.0.1 -p 6500 -b 0.0.0.0 -l 1080 -m chacha20-ietf-poly1305 -k test123" -x -e "kcpclient" -k "-r SSSERVER_IP:6500 -l :6500 -mode fast2"
 ```
 
 **以上命令相当于执行了** 
 
 ``` sh
-ss-local -s 127.0.0.1 -p 6500 -b 0.0.0.0 -l 1080 -m aes-256-cfb -k test123 --fast-open 
+ss-local -s 127.0.0.1 -p 6500 -b 0.0.0.0 -l 1080 -m chacha20-ietf-poly1305 -k test123
 kcpclient -r SSSERVER_IP:6500 -l :6500 -mode fast2
 ```
 
@@ -75,12 +77,17 @@ kcpclient -r SSSERVER_IP:6500 -l :6500 -mode fast2
 使用时可指定环境变量，如下
 
 ``` sh
-docker run -dt --name ss -p 6443:6443 -p 6500:6500/udp -e SS_CONFIG="-s 0.0.0.0 -p 6443 -m aes-256-cfb -k test123 --fast-open" -e KCP_MODULE="kcpserver" -e KCP_CONFIG="-t 127.0.0.1:6443 -l :6500 -mode fast2" -e KCP_FLAG="true" mritd/shadowsocks
+docker run -dt --name ss -p 6443:6443 -p 6500:6500/udp -e SS_CONFIG="-s 0.0.0.0 -p 6443 -m chacha20-ietf-poly1305 -k test123" -e KCP_MODULE="kcpserver" -e KCP_CONFIG="-t 127.0.0.1:6443 -l :6500 -mode fast2" -e KCP_FLAG="true" mritd/shadowsocks
 ```
 
 ### 容器平台说明
 
 **各大免费容器平台都已经对代理工具做了对应封锁，一是为了某些不可描述的原因，二是为了防止被利用称为 DDOS 工具等；基于种种原因，公共免费容器平台问题将不予回复**
+
+### GCE 随机数生成错误
+
+如果在 GCE 上使用本镜像，在特殊情况下可能会出现 `This system doesn't provide enough entropy to quickly generate high-quality random numbers.` 错误；
+这种情况是由于宿主机没有能提供足够的熵来生成随机数导致，修复办法可以考虑增加 `--device /dev/urandom:/dev/urandom` 选项来使用 `/dev/urandom` 来生成，不过并不算推荐此种方式
 
 ### 更新日志
 
@@ -231,3 +238,72 @@ update kcptun to 20180305
 - 2018-03-23 update kcptun
 
 update kcptun to 20180316(fix 'too man open files')
+
+- 2018-05-29 update shadowsocks
+
+update shadowsocks to 3.2.0(Add MinGW,Refine c-ares integration...)
+
+- 2018-07-09 update base image
+
+update base image to alpine 3.8
+
+- 2018-08-05 fix high-quality random numbers
+
+fix `system doesn't provide enough entropy to quickly generate high-quality random numbers`
+
+- 2018-08-16 update kcptun
+
+update kcptun to v20180810
+
+- 2018-09-27 update kcptun
+
+update kcptun to v20180926
+
+- 2018-11-06 add `-r` option
+
+update kcptun to v20181002
+add `-r` option to fix GCE `system doesn't provide enough entropy...` error
+
+- 2018-11-14 update shadowsocks
+
+update shadowsocks to v3.2.1
+
+- 2018-11-15 update kcptun
+
+update kcptun to v20181114
+
+- 2018-12-14 update shadowsocks
+
+update shadowsocks to v3.2.3
+
+- 2018-12-26 update kcptun
+
+update kcptun to v20181224
+
+- 2019-01-10 update kcptun
+
+update kcptun to v20190109
+
+- 2019-01-23 add v2ray-plugin
+
+add v2ray-plugin support
+
+- 2019-02-26 update to v3.2.4
+
+update shadowsocks to v3.2.4
+
+- 2019-04-14 update to v3.2.5
+
+update shadowsocks to v3.2.5, update kcptun to v20190409
+
+- 2019-04-24 update kcptun
+
+update kcptun to v20190424
+
+- 2019-04-29 add runit
+
+add runit, remove rng-tools
+
+- 2019-06-16 update kcptun
+
+update kcptun to v20190611
