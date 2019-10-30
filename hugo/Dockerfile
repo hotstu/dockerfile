@@ -1,4 +1,4 @@
-FROM alpine:3.10
+FROM nginx:1.17.4-alpine
 
 LABEL maintainer="mritd <mritd@linux.com>"
 
@@ -7,9 +7,11 @@ ARG TZ="Asia/Shanghai"
 ENV TZ ${TZ}
 
 RUN apk upgrade \
-    && apk add bash tzdata \
+    && apk add bash git tzdata \
     && ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime \
     && echo ${TZ} > /etc/timezone \
-    && rm -rf /var/cache/apk/*
+    && rm -rf /usr/share/nginx/html /var/cache/apk/*
 
-CMD ["/bin/bash"]
+COPY endpoint.sh /endpoint.sh
+
+CMD ["/endpoint.sh"]
